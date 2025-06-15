@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posts</title>
+</head>
+<body>
+    <script>
+        let template = document.getElementById("post-template")
+        let target = document.getElementById("posts-target")
+        let firstPost = target.firstElementChild
+
+        let newPost = template.cloneNode(true)
+        newPost.setAttribute("id","post1")
+        newPost.style.display = "block"
+        newPost.firstElementChild.textContent = "Hello this is title"
+        newPost.lastElementChild.textContent = "And this is the first paragraph of a new post"
+
+        target.insertBefore(newPost, firstPost)
+    </script>
+    <article id="post-template" style="display: none;">
+        <h1>TITLE</h1>
+        <p>PARAGRAPH</p>
+    </article>
+
+    <div id="posts">
+        <p>Here are articles</p>
+        <div id="posts-target">
+            <article id="placeholder"></article>
+        </div>
+    </div>
+</body>
+</html>

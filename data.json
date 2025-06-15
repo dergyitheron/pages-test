@@ -1,0 +1,16 @@
+[
+  {
+    "title": "post 1",
+    "paragraphs": [
+        "first paragraph",
+        "second paragraph"
+      ]
+  },
+  {
+    "title": "post 2",
+    "paragraphs": [
+        "first paragraph of the second post",
+        "following paragraph"
+      ]
+  }
+]
