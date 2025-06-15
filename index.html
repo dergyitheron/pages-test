@@ -19,15 +19,30 @@
     <script defer>
         let template = document.getElementById("post-template")
         let target = document.getElementById("posts-target")
-        let firstPost = target.firstElementChild
+        
+        let response = await fetch("data.json")
+        let data = await response.json()
 
-        let newPost = template.cloneNode(true)
-        newPost.setAttribute("id","post1")
-        newPost.style.display = "block"
-        newPost.firstElementChild.textContent = "Hello this is title"
-        newPost.lastElementChild.textContent = "And this is the first paragraph of a new post"
+        data.forEach((post, index) => {
+            let newPost = template.cloneNode(true)
+            let firstPost = target.firstElementChild
 
-        target.insertBefore(newPost, firstPost)
+            newPost.setAttribute("id","post" + index)
+            newPost.style.display = "block"
+            
+            let h1 = document.createElement("h1")
+            h1.textContent = post.title
+            newPost.appendChild(h1)
+            
+            post.paragraphs.forEach(paragraph => {
+                let p = document.createElement("p")
+                p.textContent = paragraph
+                newPost.appendChild(p)
+            })
+            
+            target.insertBefore(newPost, firstPost)
+        })
+
     </script>
 </body>
 </html>
