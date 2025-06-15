@@ -5,6 +5,17 @@
     <title>Posts</title>
 </head>
 <body>
+    <article id="post-template" style="display: none;">
+        <h1>TITLE</h1>
+        <p>PARAGRAPH</p>
+    </article>
+
+    <div id="posts">
+        <p>Here are articles</p>
+        <div id="posts-target">
+            <article id="placeholder"></article>
+        </div>
+    </div>
     <script>
         let template = document.getElementById("post-template")
         let target = document.getElementById("posts-target")
@@ -18,16 +29,5 @@
 
         target.insertBefore(newPost, firstPost)
     </script>
-    <article id="post-template" style="display: none;">
-        <h1>TITLE</h1>
-        <p>PARAGRAPH</p>
-    </article>
-
-    <div id="posts">
-        <p>Here are articles</p>
-        <div id="posts-target">
-            <article id="placeholder"></article>
-        </div>
-    </div>
 </body>
 </html>
