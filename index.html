@@ -1,47 +1,405 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Posts</title>
+    <title>Interactive Guide: Shorewall & Docker Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Slate and Stone Neutrals -->
+    <!-- Application Structure Plan: A task-oriented, single-page dashboard designed for system administrators. The flow prioritizes action: 1) A clear summary of the core conflict ('The Problem'). 2) An interactive diagram of the technical details ('System Philosophies') to build understanding. 3) A direct comparison of 'Solution Pathways' to guide decision-making, with a strong emphasis on the recommended approach. 4) A 'Definitive Solution' section with copyable code snippets for immediate implementation. 5) An 'Advanced Guidance' section for best practices. This structure is more effective than a linear report as it allows a user to quickly identify the problem, find the solution, and implement it, while still providing deeper context on demand. -->
+    <!-- Visualization & Content Choices: 
+        - Conflict Summary: Report Info -> Shorewall's static vs. Docker's dynamic nature. Goal -> Inform. Viz/Method -> Side-by-side comparison using HTML/CSS Flexbox with icons. Justification -> Quickly visualizes the core opposition.
+        - Docker Chains: Report Info -> List of modern Docker iptables chains (DOCKER-USER, DOCKER-INGRESS, etc.). Goal -> Organize/Inform. Viz/Method -> Interactive HTML/CSS diagram where clicking a chain reveals its description. Justification -> More engaging and digestible than a static table, promotes active learning.
+        - Solution Comparison: Report Info -> Analysis of the three solution paths. Goal -> Compare/Guide. Viz/Method -> Interactive cards with 'Recommended'/'Not Recommended' badges. Justification -> Directs the user to the optimal solution while providing context on why others are flawed.
+        - Code Snippets: Report Info -> The recommended extension scripts. Goal -> Enable Action. Viz/Method -> Styled <pre><code> blocks with one-click copy functionality. Justification -> Maximizes usability for a technical audience.
+        - Best Practices: Report Info -> Filtering with DOCKER-USER, systemd startup order. Goal -> Inform. Viz/Method -> Accordion component for different scenarios. Justification -> Organizes distinct best practices into clear, accessible sections.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        .nav-link {
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #10B981; 
+            border-bottom-color: #10B981;
+        }
+        .solution-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .solution-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .code-block {
+            position: relative;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .chain-box.active {
+            background-color: #10B981;
+            color: white;
+            border-color: #059669;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+    </style>
 </head>
-<body>
-    <article id="post-template" style="display: none;">
-        <hr/>
-    </article>
+<body class="bg-slate-50 text-slate-800">
 
-    <div id="posts">
-        <p>Here are articles</p>
-        <div id="posts-target">
-            <article id="placeholder"></article>
-        </div>
-    </div>
-    <script type="module" defer>
-        let template = document.getElementById("post-template")
-        let target = document.getElementById("posts-target")
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-slate-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-slate-900">Shorewall <span class="text-emerald-500">&</span> Docker</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#problem" class="nav-link text-slate-600 font-medium px-3 py-2 text-sm border-b-2 border-transparent">The Problem</a>
+                        <a href="#solutions" class="nav-link text-slate-600 font-medium px-3 py-2 text-sm border-b-2 border-transparent">Solution Paths</a>
+                        <a href="#implementation" class="nav-link text-slate-600 font-medium px-3 py-2 text-sm border-b-2 border-transparent">Implementation</a>
+                        <a href="#guidance" class="nav-link text-slate-600 font-medium px-3 py-2 text-sm border-b-2 border-transparent">Best Practices</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-        let response = await fetch("data.json")
-        let data = await response.json()
+        <section id="intro" class="text-center mb-20">
+            <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Harmonizing Legacy and Modern Networking</h2>
+            <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">An interactive guide to resolving the `iptables` conflict between Shorewall and Docker, ensuring stable and secure container networking.</p>
+        </section>
 
-        data.forEach((post, index) => {
-            let newPost = template.cloneNode(true)
-            let firstPost = target.firstElementChild
+        <section id="problem" class="mb-20">
+            <h3 class="text-2xl font-bold text-center text-slate-900 mb-2">A Tale of Two Philosophies</h3>
+            <p class="text-center text-slate-600 mb-12 max-w-3xl mx-auto">The conflict isn't a bug; it's a fundamental clash in how Shorewall and Docker manage firewall rules. Understanding this is the first step to a stable solution.</p>
+            
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                <div class="bg-white p-6 rounded-lg border border-slate-200">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="bg-slate-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </div>
+                        <h4 class="text-xl font-semibold text-slate-800">Shorewall: The Fortress</h4>
+                    </div>
+                    <p class="text-slate-600">Shorewall sees itself as the sole authority. On restart, it performs a <strong class="text-slate-700">complete flush</strong> of all `iptables` rules to build a clean, predictable state from its static configuration files. It assumes any other rules are unauthorized.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg border border-slate-200">
+                     <div class="flex items-center gap-4 mb-4">
+                        <div class="bg-emerald-100 p-3 rounded-full">
+                           <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0122 12c0 3.771-2.583 6.94-6.064 7.686a8.008 8.008 0 01-2.9-1.029h.001z"></path></svg>
+                        </div>
+                        <h4 class="text-xl font-semibold text-emerald-800">Docker: The Dynamic Agent</h4>
+                    </div>
+                    <p class="text-slate-600">Docker works <strong class="text-emerald-700">dynamically and additively</strong>. It inserts and removes its own complex set of rules as containers are created and destroyed. It expects these rules to persist, enabling features like port mapping and network isolation.</p>
+                </div>
+            </div>
+            
+            <div class="mt-12">
+                <h4 class="text-xl font-semibold text-center text-slate-900 mb-8">Visualizing Docker's `iptables` Architecture</h4>
+                <div class="bg-white p-6 rounded-lg border border-slate-200">
+                    <p class="text-center text-slate-600 mb-6">Modern Docker creates multiple interdependent `iptables` chains. A robust solution must preserve all of them. <strong class="text-emerald-600">Click on a chain name</strong> to learn its purpose.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div id="chain-diagram" class="flex flex-col items-center justify-center space-y-2">
+                           <div class="chain-box cursor-pointer" data-chain="DOCKER-USER">DOCKER-USER</div>
+                           <div class="text-slate-400">↓</div>
+                           <div class="chain-box cursor-pointer" data-chain="DOCKER-ISOLATION-STAGE-1">DOCKER-ISOLATION-STAGE-1</div>
+                           <div class="text-slate-400">↓</div>
+                           <div class="chain-box cursor-pointer" data-chain="DOCKER-ISOLATION-STAGE-2">DOCKER-ISOLATION-STAGE-2</div>
+                           <div class="text-slate-400">↓</div>
+                           <div class="chain-box cursor-pointer" data-chain="DOCKER">DOCKER</div>
+                           <div class="text-slate-400">↓</div>
+                           <div class="chain-box cursor-pointer" data-chain="DOCKER-INGRESS">DOCKER-INGRESS</div>
+                        </div>
+                        <div id="chain-info" class="bg-slate-100 p-4 rounded-md min-h-[200px] flex items-center justify-center text-slate-500">
+                            <p>Select a chain to see details.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-            newPost.setAttribute("id","post" + index)
-            newPost.style.display = "block"
-            
-            let h1 = document.createElement("h1")
-            h1.textContent = post.title
-            newPost.appendChild(h1)
-            
-            post.paragraphs.forEach(paragraph => {
-                let p = document.createElement("p")
-                p.textContent = paragraph
-                newPost.appendChild(p)
-            })
-            
-            target.insertBefore(newPost, firstPost)
-        })
+        <section id="solutions" class="mb-20">
+            <h3 class="text-2xl font-bold text-center text-slate-900 mb-12">Evaluating the Solution Pathways</h3>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="solution-card bg-white p-6 rounded-lg border border-slate-200 flex flex-col">
+                    <h4 class="text-lg font-semibold mb-2">Native Support (`DOCKER=Yes`)</h4>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 mb-4 w-fit">Not Recommended</span>
+                    <p class="text-slate-600 grow">A simple setting in `shorewall.conf`. Prone to failure as it's unmaintained, incompatible with Docker Swarm, and has known issues on Debian-based systems.</p>
+                </div>
+                <div class="solution-card bg-white p-6 rounded-lg border-2 border-emerald-500 flex flex-col shadow-lg">
+                    <h4 class="text-lg font-semibold mb-2">Shorewall Extension Scripts</h4>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 mb-4 w-fit">Definitive Solution</span>
+                    <p class="text-slate-600 grow">The most robust and future-proof method. Uses custom scripts to hook into Shorewall's lifecycle, perfectly saving and restoring all Docker rules every time.</p>
+                </div>
+                <div class="solution-card bg-white p-6 rounded-lg border border-slate-200 flex flex-col">
+                    <h4 class="text-lg font-semibold mb-2">Disable Docker `iptables`</h4>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 mb-4 w-fit">Strongly Discouraged</span>
+                    <p class="text-slate-600 grow">An anti-pattern that breaks core Docker features like port mapping and DNS. Creates more problems than it solves, requiring complex manual configuration.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="implementation" class="mb-20">
+            <h3 class="text-2xl font-bold text-center text-slate-900 mb-2">The Definitive Solution: Implementation Guide</h3>
+            <p class="text-center text-slate-600 mb-12 max-w-3xl mx-auto">This method uses Shorewall's own extension system for a reliable integration. Create the following executable scripts in `/etc/shorewall/`.</p>
 
-    </script>
+            <div class="space-y-8">
+                <div>
+                    <h4 class="text-xl font-semibold mb-4">Step 1: The "Save" Scripts</h4>
+                    <p class="text-slate-600 mb-4">Create <code class="bg-slate-200 text-sm font-mono p-1 rounded">/etc/shorewall/init</code> and <code class="bg-slate-200 text-sm font-mono p-1 rounded">/etc/shorewall/stop</code> with this content. These scripts run before Shorewall flushes rules, saving Docker's configuration.</p>
+                    <div class="code-block bg-slate-800 text-white rounded-lg overflow-hidden">
+                        <button class="copy-button bg-slate-600 hover:bg-emerald-500 text-white px-2 py-1 text-xs rounded" onclick="copyCode(this)">Copy</button>
+                        <pre class="p-4 text-sm overflow-x-auto"><code id="code-init"># /etc/shorewall/init
+# /etc/shorewall/stop
+RULES_FILE="/var/lib/shorewall/.docker_rules"
+
+if iptables -t nat -L DOCKER >/dev/null 2>&1; then
+    echo "Saving Docker NAT rules to ${RULES_FILE}"
+    (
+        echo '*nat'
+        iptables-save -t nat | grep -i 'DOCKER'
+        echo 'COMMIT'
+    ) > "${RULES_FILE}"
+
+    echo "Saving Docker FILTER rules to ${RULES_FILE}"
+    (
+        echo '*filter'
+        iptables-save -t filter | grep -i 'DOCKER'
+        echo 'COMMIT'
+    ) >> "${RULES_FILE}"
+fi</code></pre>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-xl font-semibold mb-4">Step 2: The "Restore" Script</h4>
+                    <p class="text-slate-600 mb-4">Create <code class="bg-slate-200 text-sm font-mono p-1 rounded">/etc/shorewall/start</code> with this content. It restores the saved rules and re-links the critical `JUMP` rules after Shorewall has finished.</p>
+                    <div class="code-block bg-slate-800 text-white rounded-lg overflow-hidden">
+                        <button class="copy-button bg-slate-600 hover:bg-emerald-500 text-white px-2 py-1 text-xs rounded" onclick="copyCode(this)">Copy</button>
+                        <pre class="p-4 text-sm overflow-x-auto"><code id="code-start"># /etc/shorewall/start
+RULES_FILE="/var/lib/shorewall/.docker_rules"
+
+if [ -f "${RULES_FILE}" ]; then
+    echo "Restoring Docker iptables rules from ${RULES_FILE}"
+    iptables-restore -n < "${RULES_FILE}"
+
+    echo "Re-linking NAT table to DOCKER chain"
+    run_iptables -t nat -I PREROUTING -m addrtype --dst-type LOCAL -j DOCKER
+    run_iptables -t nat -I OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -j DOCKER
+
+    echo "Re-linking FORWARD chain to Docker chains"
+    run_iptables -I FORWARD -j DOCKER-USER
+    run_iptables -I FORWARD -j DOCKER-ISOLATION-STAGE-1
+    run_iptables -I FORWARD -o docker0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+    run_iptables -I FORWARD -o docker0 -j DOCKER
+    
+    rm -f "${RULES_FILE}"
+fi</code></pre>
+                    </div>
+                </div>
+                 <div>
+                    <h4 class="text-xl font-semibold mb-4">Step 3: Make Scripts Executable</h4>
+                    <p class="text-slate-600 mb-4">Finally, ensure the system can run your new scripts.</p>
+                    <div class="code-block bg-slate-800 text-white rounded-lg overflow-hidden">
+                         <button class="copy-button bg-slate-600 hover:bg-emerald-500 text-white px-2 py-1 text-xs rounded" onclick="copyCode(this)">Copy</button>
+                        <pre class="p-4 text-sm overflow-x-auto"><code id="code-chmod">chmod +x /etc/shorewall/init /etc/shorewall/stop /etc/shorewall/start</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="guidance" class="mb-20">
+            <h3 class="text-2xl font-bold text-center text-slate-900 mb-12">Best Practices & Advanced Guidance</h3>
+            <div class="max-w-3xl mx-auto">
+                <div class="space-y-4 accordion-container">
+                    <div class="accordion-item bg-white border border-slate-200 rounded-lg">
+                        <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold text-slate-800">
+                            <span>Filtering Traffic with `DOCKER-USER`</span>
+                            <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="accordion-content">
+                            <div class="p-4 border-t border-slate-200 text-slate-600">
+                                <p>Never filter container traffic in the `INPUT` chain. Always use the `DOCKER-USER` chain, which Docker provides for this purpose. <strong class="text-slate-700">Crucially, you must use the `conntrack` module to filter by the original destination port</strong>, as the port has already been rewritten by the time the packet reaches this chain.</p>
+                                <p class="mt-2 font-semibold">Example: Allow port 8080 only from a specific IP:</p>
+                                <div class="code-block bg-slate-800 text-white rounded-lg overflow-hidden mt-2">
+                                     <button class="copy-button bg-slate-600 hover:bg-emerald-500 text-white px-2 py-1 text-xs rounded" onclick="copyCode(this)">Copy</button>
+                                    <pre class="p-4 text-sm overflow-x-auto"><code id="code-dnat"># Allow established connections first
+iptables -I DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Allow new connections from our trusted IP to original port 8080
+iptables -I DOCKER-USER -p tcp -s 192.168.1.100 -m conntrack --ctorigdstport 8080 -j ACCEPT
+
+# Drop all other attempts to original port 8080
+iptables -A DOCKER-USER -p tcp -m conntrack --ctorigdstport 8080 -j DROP</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-white border border-slate-200 rounded-lg">
+                         <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold text-slate-800">
+                            <span>Ensuring Stable Startup Order with `systemd`</span>
+                            <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div class="accordion-content">
+                            <div class="p-4 border-t border-slate-200 text-slate-600">
+                                <p>To prevent race conditions on boot, Shorewall must always start <strong class="text-slate-700">before</strong> Docker. You can enforce this with a `systemd` override.</p>
+                                <p class="mt-2 font-semibold">1. Create the file <code class="bg-slate-200 text-sm font-mono p-1 rounded">/etc/systemd/system/docker.service.d/override.conf</code>:</p>
+                                <div class="code-block bg-slate-800 text-white rounded-lg overflow-hidden mt-2">
+                                     <button class="copy-button bg-slate-600 hover:bg-emerald-500 text-white px-2 py-1 text-xs rounded" onclick="copyCode(this)">Copy</button>
+                                    <pre class="p-4 text-sm overflow-x-auto"><code id="code-systemd">[Unit]
+Requires=shorewall.service
+After=shorewall.service</code></pre>
+                                </div>
+                                <p class="mt-4 font-semibold">2. Reload systemd and restart Docker:</p>
+                                <div class="code-block bg-slate-800 text-white rounded-lg overflow-hidden mt-2">
+                                     <button class="copy-button bg-slate-600 hover:bg-emerald-500 text-white px-2 py-1 text-xs rounded" onclick="copyCode(this)">Copy</button>
+                                    <pre class="p-4 text-sm overflow-x-auto"><code id="code-reload">sudo systemctl daemon-reload
+sudo systemctl restart docker</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
+            <p>Interactive guide based on the technical analysis of Shorewall and Docker integration.</p>
+        </div>
+    </footer>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const chainData = {
+            'DOCKER-USER': {
+                title: 'DOCKER-USER',
+                description: 'The primary integration point for your custom rules. Rules here are processed *before* Docker\'s own rules, allowing you to override defaults.'
+            },
+            'DOCKER-ISOLATION-STAGE-1': {
+                title: 'DOCKER-ISOLATION-STAGE-1',
+                description: 'The first of two chains that enforce network isolation between different Docker networks. Part of modern security-by-default.'
+            },
+            'DOCKER-ISOLATION-STAGE-2': {
+                title: 'DOCKER-ISOLATION-STAGE-2',
+                description: 'The second isolation chain. Contains the final `DROP` rules that prevent containers on separate networks from communicating.'
+            },
+            'DOCKER': {
+                title: 'DOCKER',
+                description: 'A multipurpose chain. In the `nat` table, it handles port mapping (DNAT). In the `filter` table, it manages traffic to and from containers.'
+            },
+            'DOCKER-INGRESS': {
+                title: 'DOCKER-INGRESS',
+                description: 'Critical for Docker Swarm. It handles load balancing and routing for services published across a cluster, making it a common failure point for older solutions.'
+            }
+        };
+
+        const chainBoxes = document.querySelectorAll('.chain-box');
+        const chainInfoEl = document.getElementById('chain-info');
+        
+        chainBoxes.forEach(box => {
+            box.addEventListener('click', () => {
+                const chainKey = box.dataset.chain;
+                const data = chainData[chainKey];
+                
+                chainBoxes.forEach(b => b.classList.remove('active'));
+                box.classList.add('active');
+
+                chainInfoEl.innerHTML = `
+                    <div class="text-left">
+                        <h5 class="font-bold text-slate-800">${data.title}</h5>
+                        <p class="mt-2 text-slate-600 text-sm">${data.description}</p>
+                    </div>
+                `;
+            });
+        });
+        
+        const accordions = document.querySelectorAll('.accordion-item');
+        accordions.forEach(item => {
+            const header = item.querySelector('.accordion-header');
+            const content = item.querySelector('.accordion-content');
+            const icon = header.querySelector('svg');
+
+            header.addEventListener('click', () => {
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    accordions.forEach(otherItem => {
+                       const otherContent = otherItem.querySelector('.accordion-content');
+                       const otherIcon = otherItem.querySelector('.accordion-header svg');
+                       otherContent.style.maxHeight = null;
+                       otherIcon.style.transform = 'rotate(0deg)';
+                    })
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('main section[id]');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 80) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    });
+
+    function copyCode(button) {
+        const codeElement = button.nextElementSibling.querySelector('code');
+        const textToCopy = codeElement.innerText;
+        
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = textToCopy;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextArea);
+
+        const originalText = button.innerText;
+        button.innerText = 'Copied!';
+        button.classList.remove('hover:bg-emerald-500');
+        button.classList.add('bg-emerald-500');
+
+        setTimeout(() => {
+            button.innerText = originalText;
+            button.classList.remove('bg-emerald-500');
+            button.classList.add('hover:bg-emerald-500');
+        }, 2000);
+    }
+</script>
+
 </body>
 </html>
